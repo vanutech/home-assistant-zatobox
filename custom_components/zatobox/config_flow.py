@@ -8,7 +8,7 @@ import voluptuous as vol
 
 from .const import DOMAIN
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 ZATOBOX_SCHEMA = vol.Schema(
@@ -32,17 +32,20 @@ class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: Dict[str, str] = {}
 
         if user_input is None:
+            _LOGGER.debug(f"no user info")
+
             return self.async_show_form(
                         step_id="setup", data_schema=ZATOBOX_SCHEMA, errors=errors
                     )
 
 
         self.data = user_input
-
+        errors["base"] = "customerror"
         if errors:
             return self.async_show_form(
                         step_id="setup", data_schema=ZATOBOX_SCHEMA, errors=errors
                     )
         
+        _LOGGER.debug(f"creating entity")
         #create entieties when succes
         return self.async_create_entry(title="Zatobox", data=self.data)

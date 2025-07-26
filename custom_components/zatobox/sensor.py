@@ -1,6 +1,7 @@
 """Platform for sensor integration."""
 from __future__ import annotations
 from datetime import timedelta
+import logging
 from typing import Any, Callable, Dict, Optional
 
 from homeassistant import config_entries, core
@@ -27,6 +28,8 @@ from homeassistant.const import UnitOfPower
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+
+_LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 async def async_setup_entry(
