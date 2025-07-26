@@ -15,7 +15,6 @@ ZATOBOX_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_PATH): cv.string,
         vol.Optional(CONF_NAME): cv.string,
-        vol.Optional("add_another"): cv.boolean,
     }
 )
 

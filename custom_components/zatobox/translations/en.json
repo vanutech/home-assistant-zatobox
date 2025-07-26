@@ -9,9 +9,10 @@
     "flow_title": "{name}",
     "step": {
       "user": {
-        "description": "Choose a device to setup",
+        "description": "Provide zatobox info",
         "data": {
-          "id": "Device"
+          "path": "Path",
+          "name": "Name"
         }
       }
     },
