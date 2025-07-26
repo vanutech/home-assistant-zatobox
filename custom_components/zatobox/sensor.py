@@ -1,5 +1,22 @@
 """Platform for sensor integration."""
 from __future__ import annotations
+from datetime import timedelta
+from typing import Any, Callable, Dict, Optional
+
+from homeassistant import config_entries, core
+from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.typing import (
+    ConfigType,
+    DiscoveryInfoType,
+    HomeAssistantType,
+)
+import voluptuous as vol
+
+from .const import (
+    DOMAIN,
+)
+
+from __future__ import annotations
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -12,14 +29,27 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 
-def setup_platform(
-    hass: HomeAssistant,
+async def async_setup_entry(
+    hass: core.HomeAssistant,
+    config_entry: config_entries.ConfigEntry,
+    async_add_entities,
+):
+    """Setup sensors from a config entry created in the integrations UI."""
+    sensors = [ZatoboxSensor()]
+    async_add_entities(sensors, update_before_add=True)
+
+
+async def async_setup_platform(
+    hass: HomeAssistantType,
     config: ConfigType,
-    add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None
+    async_add_entities: Callable,
+    discovery_info: Optional[DiscoveryInfoType] = None,
 ) -> None:
     """Set up the sensor platform."""
-    add_entities([ZatoboxSensor()])
+    
+    sensors = [ZatoboxSensor()]
+    async_add_entities(sensors, update_before_add=True)
+
 
 
 class ZatoboxSensor(SensorEntity):
