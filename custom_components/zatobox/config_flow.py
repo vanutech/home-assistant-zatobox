@@ -31,21 +31,17 @@ class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Invoked when a user initiates a flow via the user interface."""
         errors: Dict[str, str] = {}
 
-        if user_input is None:
-            _LOGGER.debug(f"no user info")
+        if user_input is not None:
+            self.data = user_input
 
-            return self.async_show_form(
-                        step_id="setup", data_schema=ZATOBOX_SCHEMA, errors=errors
-                    )
+            if not errors:
+                _LOGGER.debug("Creating entity")
+                # Create entities when successful
+                return self.async_create_entry(title="Zatobox", data=self.data)
 
+        _LOGGER.debug("Showing user form")
+        return self.async_show_form(
+            step_id="user", data_schema=ZATOBOX_SCHEMA, errors=errors
+        )
+    
 
-        self.data = user_input
-        errors["base"] = "customerror"
-        if errors:
-            return self.async_show_form(
-                        step_id="setup", data_schema=ZATOBOX_SCHEMA, errors=errors
-                    )
-        
-        _LOGGER.debug(f"creating entity")
-        #create entieties when succes
-        return self.async_create_entry(title="Zatobox", data=self.data)
