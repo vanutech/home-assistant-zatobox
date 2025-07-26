@@ -1,6 +1,6 @@
 {
   "codeowners": ["@vanutech"],
-  "config_flow": false,
+  "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/vanutech/home-assistant-zatobox",
   "domain": "zatobox",
