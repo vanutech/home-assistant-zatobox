@@ -1,5 +1,4 @@
 """Platform for sensor integration."""
-from __future__ import annotations
 from datetime import timedelta
 import logging
 from typing import Any, Callable, Dict, Optional
@@ -17,7 +16,6 @@ from .const import (
     DOMAIN,
 )
 
-from __future__ import annotations
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
