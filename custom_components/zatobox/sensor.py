@@ -35,6 +35,9 @@ from homeassistant.helpers.update_coordinator import (
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
+#version of home assistant
+# Python version 3.10.7 (main, Nov 24 2022, 10:22:41) [GCC 11.2.1 20220219]
+
 
 async def async_setup_entry(
     hass: core.HomeAssistant,

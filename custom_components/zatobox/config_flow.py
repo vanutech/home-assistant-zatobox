@@ -10,6 +10,8 @@ from .const import DOMAIN
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
+import sys
+
 
 ZATOBOX_SCHEMA = vol.Schema(
     {
@@ -29,6 +31,12 @@ class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None):
         """Invoked when a user initiates a flow via the user interface."""
         errors: Dict[str, str] = {}
+
+
+        # Get the Python version
+        python_version = sys.version
+
+        _LOGGER.debug(f"Python version {python_version}")
 
         if user_input is not None:
             self.data = user_input
