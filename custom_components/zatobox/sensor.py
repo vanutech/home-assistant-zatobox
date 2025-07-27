@@ -24,7 +24,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import UnitOfPower
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.update_coordinator import (
@@ -59,6 +59,27 @@ async def async_setup_entry(
         ZatoboxEntity(coordinator, idx) for idx, ent in enumerate(coordinator.data)
     )
 
+async def async_setup_platform(
+    hass: HomeAssistantType,
+    config: ConfigType,
+    async_add_entities: Callable,
+    discovery_info: Optional[DiscoveryInfoType] = None,
+) -> None:
+    """Set up the sensor platform."""
+    
+    _LOGGER.debug("async platform setup")
+    my_api = None
+    
+    _LOGGER.debug(my_api)
+    coordinator = ZatoboxCoordinator(hass, None, my_api)
+
+    _LOGGER.debug("setup platform entities with coordinator")
+    await coordinator.async_config_entry_first_refresh()
+
+    _LOGGER.debug(coordinator.data)
+    async_add_entities(
+        ZatoboxEntity(coordinator, idx) for idx, ent in enumerate(coordinator.data)
+    )
 
 class ZatoboxCoordinator(DataUpdateCoordinator):
     """My custom coordinator."""
