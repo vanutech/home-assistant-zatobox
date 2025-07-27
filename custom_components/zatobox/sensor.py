@@ -69,7 +69,7 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             # Name of the data. For logging purposes.
-            name="Zatobox sensor",
+            name="zatobox_sensor",
             config_entry=config_entry,
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=timedelta(seconds=5),
