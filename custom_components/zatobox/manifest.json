@@ -6,7 +6,7 @@
   "domain": "zatobox",
   "iot_class": "local_polling",
   "name": "Zatobox",
-  "requirements": ["python-zatobox"],
+  "requirements": [],
   "version": "0.1.1",
   "loggers": ["custom_components.zatobox"]
 }
