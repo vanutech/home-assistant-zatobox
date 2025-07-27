@@ -94,10 +94,8 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
             name="zatobox_sensor",
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=timedelta(seconds=5),
-            # Set always_update to `False` if the data returned from the
-            # api can be compared via `__eq__` to avoid duplicate updates
-            # being dispatched to listeners
-            always_update=True
+
+            
         )
         self.my_api = my_api
 
