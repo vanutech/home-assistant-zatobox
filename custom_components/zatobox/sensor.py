@@ -46,6 +46,7 @@ async def async_setup_entry(
     my_api = hass.data[DOMAIN][config_entry.entry_id]
     
     _LOGGER.debug(my_api)
+    _LOGGER.debug(my_api)
     coordinator = ZatoboxCoordinator(hass, config_entry, my_api)
 
     
@@ -91,7 +92,6 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
             _LOGGER,
             # Name of the data. For logging purposes.
             name="zatobox_sensor",
-            config_entry=config_entry,
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=timedelta(seconds=5),
             # Set always_update to `False` if the data returned from the
