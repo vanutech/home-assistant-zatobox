@@ -60,30 +60,10 @@ async def async_setup_entry(
 
     _LOGGER.debug(coordinator.data)
     async_add_entities(
-        ZatoboxEntity(coordinator, idx) for idx, ent in enumerate(coordinator.data)
+        ZatoboxEntity(coordinator, idx, ent) for idx, ent in enumerate(coordinator.data)
     )
 
-async def async_setup_platform(
-    hass: HomeAssistantType,
-    config: ConfigType,
-    async_add_entities: Callable,
-    discovery_info: Optional[DiscoveryInfoType] = None,
-) -> None:
-    """Set up the sensor platform."""
-    
-    _LOGGER.debug("async platform setup")
-    my_api = None
-    
-    _LOGGER.debug(my_api)
-    coordinator = ZatoboxCoordinator(hass, None, my_api)
 
-    _LOGGER.debug("setup platform entities with coordinator")
-    await coordinator.async_config_entry_first_refresh()
-
-    _LOGGER.debug(coordinator.data)
-    async_add_entities(
-        ZatoboxEntity(coordinator, idx) for idx, ent in enumerate(coordinator.data)
-    )
 
 class ZatoboxCoordinator(DataUpdateCoordinator):
     """My custom coordinator."""
@@ -141,11 +121,36 @@ class ZatoboxEntity(CoordinatorEntity, SensorEntity):
     _attr_state_class = SensorStateClass.MEASUREMENT
 
 
-    def __init__(self, coordinator, idx):
+    def __init__(self, coordinator, idx, ent):
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(coordinator, context=idx)
         self.idx = idx        
         host = "192.168.68.102"  # Replace with the actual IP address of the device
+        
+        
+        self._attr_has_entity_name = True
+        self.entity_key = idx
+        self._attr_unique_id = f"zatobox_entity_{idx}"
+        
+        self._attr_device_class = f"{DOMAIN}__{idx}"
+    #     self._attr_device_info = build_device_info(device_name, data)
+
+    # def build_device_info(unique_name: str, data: EntryData) -> DeviceInfo:
+    #     friendly_name = (
+    #         data.appliance_info.name if data.appliance_info is not None else unique_name
+    #     )
+    #     manufacturer = (
+    #         brand_name_by_code[data.appliance_info.brand]
+    #         if data.appliance_info is not None
+    #         else None
+    #     )
+    #     model = data.appliance_info.model if data.appliance_info is not None else None
+    #     return DeviceInfo(  # type: ignore[typeddict-item]
+    #         identifiers={(DOMAIN, unique_name)},
+    #         name=friendly_name,
+    #         manufacturer=manufacturer,
+    #         model=model,
+    #     )
 
     @callback
     def _handle_coordinator_update(self) -> None:
