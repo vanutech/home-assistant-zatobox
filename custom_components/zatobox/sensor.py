@@ -115,10 +115,7 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
 class ZatoboxEntity(CoordinatorEntity, SensorEntity):
     """Representation of a Sensor."""
 
-    _attr_name = "Vanubus Sensor"
-    _attr_native_unit_of_measurement = UnitOfPower.WATT
-    _attr_device_class = SensorDeviceClass.POWER
-    _attr_state_class = SensorStateClass.MEASUREMENT
+
 
 
     def __init__(self, coordinator, idx, ent):
@@ -128,10 +125,16 @@ class ZatoboxEntity(CoordinatorEntity, SensorEntity):
         host = "192.168.68.102"  # Replace with the actual IP address of the device
         
         
+        _LOGGER.debug("data sensor")
+        _LOGGER.debug(ent)
+        self._attr_native_unit_of_measurement = UnitOfPower.WATT
+        self._attr_device_class = SensorDeviceClass.POWER
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+
         self._attr_has_entity_name = True
         self.entity_key = idx
         self._attr_unique_id = f"zatobox_entity_{idx}"
-        
+        self._attr_name = f"zatobox_entity_{idx}"
         self._attr_device_class = f"{DOMAIN}__{idx}"
     #     self._attr_device_info = build_device_info(device_name, data)
 
