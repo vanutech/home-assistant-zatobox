@@ -118,6 +118,7 @@ class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             _LOGGER.debug(user_input)
             # Create entities when successful
+            
             return self.async_create_entry(title=f"Zatobox-{user_input[CONF_NAME]}", data=user_input)
 
         return self.async_show_form(

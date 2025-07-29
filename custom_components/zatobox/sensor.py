@@ -84,13 +84,14 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=5),
         )
         self.myinputdata = myinputdata
+        self.devicesn = myinputdata["name"]
 
         #self._device: MyDevice | None = None
     async def get_all_sensors(self) -> dict:
         coordinator_data = {
-            f"{self.myinputdata["name"]}-1": {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
-            f"{self.myinputdata["name"]}-2": {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
-            f"{self.myinputdata["name"]}-3": {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
+            f"{self.devicesn}-1": {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
+            f"{self.devicesn}-2": {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
+            f"{self.devicesn}-3": {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
         }
         return coordinator_data
 
@@ -114,9 +115,9 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
         so entities can quickly look up their data.
         """
         coordinator_data = {
-            f"{self.myinputdata["name"]}-1": {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
-            f"{self.myinputdata["name"]}-2": {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
-            f"{self.myinputdata["name"]}-3": {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
+            f"{self.devicesn}-1": {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
+            f"{self.devicesn}-2": {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
+            f"{self.devicesn}-3": {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
         }
         # coordinator_data = [
         #     {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
