@@ -11,7 +11,7 @@ from homeassistant.helpers.typing import (
     HomeAssistantType,
 )
 
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import DeviceInfo
 
 import voluptuous as vol
 
@@ -52,25 +52,28 @@ async def async_setup_entry(
     myinputdata = hass.data[DOMAIN][config_entry.entry_id]
     
     _LOGGER.debug(myinputdata)
+    #e.g.  {'name': '128280229144', 'host': '192.168.68.102'}
+
     coordinator = ZatoboxCoordinator(hass, config_entry, myinputdata)
 
     
     _LOGGER.debug("setup entities with coordinator")
 
     await coordinator.async_config_entry_first_refresh()
+    sensorsinfo = await coordinator.get_all_sensors()
 
 
     _LOGGER.debug(coordinator.data)
     async_add_entities(
-        ZatoboxEntity(coordinator, idx, ent) for idx, ent in enumerate(coordinator.data)
+        ZatoboxEntity(coordinator, key, data) for key, data in sensorsinfo.items()
     )
 
 
 
 class ZatoboxCoordinator(DataUpdateCoordinator):
-    """My custom coordinator."""
+    """My custom coordinator. linked to one device"""
 
-    def __init__(self, hass, config_entry, my_api):
+    def __init__(self, hass, config_entry, myinputdata):
         """Initialize my coordinator."""
         super().__init__(
             hass,
@@ -80,9 +83,16 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=timedelta(seconds=5),
         )
-        self.my_api = my_api
+        self.myinputdata = myinputdata
 
         #self._device: MyDevice | None = None
+    async def get_all_sensors(self) -> dict:
+        coordinator_data = {
+            f"{self.myinputdata["name"]}-1": {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
+            f"{self.myinputdata["name"]}-2": {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
+            f"{self.myinputdata["name"]}-3": {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
+        }
+        return coordinator_data
 
     async def _async_setup(self):
         """Set up the coordinator
@@ -103,11 +113,16 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
         This is the place to pre-process the data to lookup tables
         so entities can quickly look up their data.
         """
-        coordinator_data = [
-            {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
-            {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
-            {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
-        ]
+        coordinator_data = {
+            f"{self.myinputdata["name"]}-1": {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
+            f"{self.myinputdata["name"]}-2": {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
+            f"{self.myinputdata["name"]}-3": {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
+        }
+        # coordinator_data = [
+        #     {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
+        #     {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
+        #     {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
+        # ]
         return coordinator_data; #await self.my_api.fetch_data(listening_idx)
 
 
@@ -118,24 +133,25 @@ class ZatoboxEntity(CoordinatorEntity, SensorEntity):
 
 
 
-    def __init__(self, coordinator, idx, ent):
+    def __init__(self, coordinator, key, data):
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, context=idx)
-        self.idx = idx        
+        super().__init__(coordinator, context=key)
+
+        self.key = key        
         host = "192.168.68.102"  # Replace with the actual IP address of the device
         
         
         _LOGGER.debug("data sensor")
-        _LOGGER.debug(ent)
+        _LOGGER.debug(data)
         self._attr_native_unit_of_measurement = UnitOfPower.WATT
         self._attr_device_class = SensorDeviceClass.POWER
         self._attr_state_class = SensorStateClass.MEASUREMENT
 
         self._attr_has_entity_name = True
-        self.entity_key = idx
-        self._attr_unique_id = f"zatobox_entity_{idx}"
-        self._attr_name = f"zatobox_entity_{idx}"
-        self._attr_device_class = f"{DOMAIN}__{idx}"
+        self.entity_key = key
+        self._attr_unique_id = f"zatobox_entity_{key}"
+        self._attr_name = f"zatobox_entity_{key}"
+        self._attr_device_class = f"{DOMAIN}__{key}"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, "dsfsdfdsf")},
@@ -166,9 +182,9 @@ class ZatoboxEntity(CoordinatorEntity, SensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         
-        _LOGGER.debug(f"update entity {self.idx}")
+        _LOGGER.debug(f"update entity {self.key}")
 
-        self._attr_native_value = self.coordinator.data[self.idx]["power"]
+        self._attr_native_value = self.coordinator.data[self.key]["power"]
         self.async_write_ha_state()
 
     def update(self) -> None:

@@ -11,7 +11,7 @@
       "select_devices": {
         "description": "Provide zatobox device info",
         "data": {
-          "path": "Path",
+          "host": "Ip adress",
           "name": "Name",
           "devices": "Discovered devices"
         }
@@ -19,7 +19,7 @@
       "zeroconf_confirm": {
         "description": "Provide zatobox device info",
         "data": {
-          "path": "Path",
+          "host": "Ip adress",
           "name": "Name",
           "devices": "Discovered devices"
         }

@@ -44,7 +44,7 @@ class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Invoked when a user initiates a flow via the user interface."""
         errors: Dict[str, str] = {}
 
-
+        self.async_un
 
         if user_input is not None:
             self.data = user_input
@@ -52,7 +52,7 @@ class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not errors:
                 _LOGGER.debug("Creating entity")
                 # Create entities when successful
-                return self.async_create_entry(title="Zatobox", data=self.data)
+                return self.async_create_entry(title=f"Zatobox-{user_input[CONF_NAME]}", data=self.data)
             
 
         self._discovered_devices = []
@@ -66,9 +66,16 @@ class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # Return a form to select devices
         return self.async_show_form(
             step_id="select_devices",
-            data_schema=vol.Schema({
-                vol.Optional("devices", default=[]): cv.multi_select(options)
-            })
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_NAME, default=self.discovery_info[CONF_NAME]
+                    ): str,
+                    vol.Optional(
+                        CONF_HOST, default=self.discovery_info[CONF_HOST]
+                    ): str
+                }
+            )
         )
 
 
@@ -111,7 +118,7 @@ class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             _LOGGER.debug(user_input)
             # Create entities when successful
-            return self.async_create_entry(title="Zatobox", data=user_input)
+            return self.async_create_entry(title=f"Zatobox-{user_input[CONF_NAME]}", data=user_input)
 
         return self.async_show_form(
             step_id="zeroconf_confirm",
