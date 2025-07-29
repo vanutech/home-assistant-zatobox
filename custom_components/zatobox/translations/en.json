@@ -8,11 +8,12 @@
     },
     "flow_title": "{name}",
     "step": {
-      "user": {
-        "description": "Provide zatobox info",
+      "select_devices": {
+        "description": "Provide zatobox device info",
         "data": {
           "path": "Path",
-          "name": "Name"
+          "name": "Name",
+          "devices": "Discovered devices"
         }
       }
     },

@@ -21,7 +21,7 @@ ZATOBOX_SCHEMA = vol.Schema(
 )
 
 
-
+from  python_zatobox.vanubus import Vanubus, discover_zt_devices
 
 class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Github Custom config flow."""
@@ -37,7 +37,7 @@ class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         python_version = sys.version
 
         _LOGGER.debug(f"Python version {python_version}")
-
+        options = {}
         if user_input is not None:
             self.data = user_input
 
@@ -45,10 +45,23 @@ class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.debug("Creating entity")
                 # Create entities when successful
                 return self.async_create_entry(title="Zatobox", data=self.data)
+            
+        else:
+            discovered_devices = discover_zt_devices()
+
+            # Create a list of options for each discovered device
+            options = {device["name"]: device["name"] for device in discovered_devices}
+
+            # Store the discovered devices in the flow context
+            self.context["discovered_devices"] = discovered_devices
+            
 
         _LOGGER.debug("Showing user form")
+        # Return a form to select devices
         return self.async_show_form(
-            step_id="user", data_schema=ZATOBOX_SCHEMA, errors=errors
+            step_id="select_devices",
+            data_schema=vol.Schema({
+                vol.Optional("devices", default=[]): cv.multi_select(options)
+            })
         )
-    
 
