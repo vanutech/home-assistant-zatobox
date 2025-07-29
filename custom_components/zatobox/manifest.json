@@ -8,5 +8,11 @@
   "name": "Zatobox",
   "requirements": ["python-zatobox==0.1.5"],
   "version": "0.1.1",
-  "loggers": ["custom_components.zatobox"]
+  "loggers": ["custom_components.zatobox"],  
+  "zeroconf": [
+    {
+      "type": "_vanubus._tcp.local.",
+      "name": "wiser*"
+    }
+  ]
 }
