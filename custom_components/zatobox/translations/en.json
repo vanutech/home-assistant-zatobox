@@ -15,6 +15,14 @@
           "name": "Name",
           "devices": "Discovered devices"
         }
+      },
+      "zeroconf_confirm": {
+        "description": "Provide zatobox device info",
+        "data": {
+          "path": "Path",
+          "name": "Name",
+          "devices": "Discovered devices"
+        }
       }
     },
     "error": {

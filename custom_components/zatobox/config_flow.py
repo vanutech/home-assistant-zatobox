@@ -8,9 +8,8 @@ from homeassistant import config_entries, core
 from homeassistant.const import CONF_ACCESS_TOKEN, CONF_NAME, CONF_PATH, CONF_URL
 import homeassistant.helpers.config_validation as cv
 
-from homeassistant.data_entry_flow import FlowResult, section
+from homeassistant.data_entry_flow import FlowResult
 
-from homeassistant.components import zeroconf
 from homeassistant.components.zeroconf import ZeroconfServiceInfo
 
 import voluptuous as vol
@@ -33,8 +32,13 @@ _LOGGER: logging.Logger = logging.getLogger(__package__)
 
 class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Github Custom config flow."""
-
+    
     data: Optional[Dict[str, Any]]
+    
+    def __init__(self) -> None:
+        """Initialize the wiser flow."""
+        self.discovery_info = {}
+        
 
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None):
         """Invoked when a user initiates a flow via the user interface."""
@@ -120,12 +124,11 @@ class ZatoboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_HOST, default=self.discovery_info[CONF_HOST]
+                        CONF_NAME, default=self.discovery_info[CONF_NAME]
                     ): str,
                     vol.Optional(
-                        CONF_PORT, default=self.discovery_info[CONF_PORT]
-                    ): int,
-                    vol.Required(CONF_PASSWORD): str,
+                        CONF_HOST, default=self.discovery_info[CONF_HOST]
+                    ): str
                 }
             ),
             errors=errors,

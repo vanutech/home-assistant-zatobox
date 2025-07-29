@@ -10,6 +10,9 @@ from homeassistant.helpers.typing import (
     DiscoveryInfoType,
     HomeAssistantType,
 )
+
+from homeassistant.helpers.device_registry import DeviceInfo
+
 import voluptuous as vol
 
 from .const import (
@@ -46,11 +49,10 @@ async def async_setup_entry(
 ):
     
     _LOGGER.debug("async setup")
-    my_api = hass.data[DOMAIN][config_entry.entry_id]
+    myinputdata = hass.data[DOMAIN][config_entry.entry_id]
     
-    _LOGGER.debug(my_api)
-    _LOGGER.debug(my_api)
-    coordinator = ZatoboxCoordinator(hass, config_entry, my_api)
+    _LOGGER.debug(myinputdata)
+    coordinator = ZatoboxCoordinator(hass, config_entry, myinputdata)
 
     
     _LOGGER.debug("setup entities with coordinator")
@@ -77,8 +79,6 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
             name="zatobox_sensor",
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=timedelta(seconds=5),
-
-            
         )
         self.my_api = my_api
 
@@ -136,6 +136,13 @@ class ZatoboxEntity(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"zatobox_entity_{idx}"
         self._attr_name = f"zatobox_entity_{idx}"
         self._attr_device_class = f"{DOMAIN}__{idx}"
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, "dsfsdfdsf")},
+            name="test_device",
+            manufacturer="Zatobox",  # Optional: Add manufacturer information
+            model="One",  # Optional: Add model information
+        )
     #     self._attr_device_info = build_device_info(device_name, data)
 
     # def build_device_info(unique_name: str, data: EntryData) -> DeviceInfo:
