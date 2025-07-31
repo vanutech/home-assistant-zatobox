@@ -11,10 +11,14 @@ from homeassistant.helpers.typing import (
     HomeAssistantType,
 )
 
+
+
 from homeassistant.helpers.entity import DeviceInfo
 
 import voluptuous as vol
 
+
+from homeassistant.const import  CONF_NAME,  CONF_HOST
 from .const import (
     DOMAIN,
 )
@@ -35,6 +39,8 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
+
+from python_zatobox.vanubus import Vanubus
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -59,8 +65,9 @@ async def async_setup_entry(
     
     _LOGGER.debug("setup entities with coordinator")
 
-    await coordinator.async_config_entry_first_refresh()
     sensorsinfo = await coordinator.get_all_sensors()
+
+    await coordinator.async_config_entry_first_refresh()
 
 
     _LOGGER.debug(coordinator.data)
@@ -84,16 +91,28 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=5),
         )
         self.myinputdata = myinputdata
-        self.devicesn = myinputdata["name"]
+        self.devicesn = myinputdata[CONF_NAME]
+        self.ipadress = myinputdata[CONF_HOST]
+        self.sensorinfo = {}
+        
+        self.client:Vanubus = Vanubus(self.ipadress)
 
         #self._device: MyDevice | None = None
     async def get_all_sensors(self) -> dict:
-        coordinator_data = {
-            f"{self.devicesn}-1": {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
-            f"{self.devicesn}-2": {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
-            f"{self.devicesn}-3": {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
-        }
-        return coordinator_data
+
+        feedbackdata  = self.client.request_all_info()
+
+        if feedbackdata != None and len(feedbackdata.sensordata) > 0:
+            _LOGGER.error("no corrrect feedback message os sensors")
+
+        listofids = [i.id for i in  feedbackdata.sensordata]
+        
+        _LOGGER.debug("listofids")
+        _LOGGER.debug(listofids)
+
+        self.sensorinfo = {f"{self.devicesn}-{id}":  {"name": "sensor", "id": id} for id in listofids}
+
+        return self.sensorinfo
 
     async def _async_setup(self):
         """Set up the coordinator
@@ -114,17 +133,19 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
         This is the place to pre-process the data to lookup tables
         so entities can quickly look up their data.
         """
-        coordinator_data = {
-            f"{self.devicesn}-1": {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
-            f"{self.devicesn}-2": {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
-            f"{self.devicesn}-3": {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
-        }
+        ids = [value['id'] for value in self.sensorinfo.values()]
+
+        sensordata  = self.client.getdata(ids)
+
+        self.coordinator_data = {f"{self.devicesn}-{sensor.id}":  {"power": sensor.power ,"name": "sensor", "id": sensor.id} for sensor in sensordata}
+
+        _LOGGER.debug(self.coordinator_data)
         # coordinator_data = [
         #     {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
         #     {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
         #     {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
         # ]
-        return coordinator_data; #await self.my_api.fetch_data(listening_idx)
+        return self.coordinator_data; #await self.my_api.fetch_data(listening_idx)
 
 
 
