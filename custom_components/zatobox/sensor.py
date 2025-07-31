@@ -65,14 +65,15 @@ async def async_setup_entry(
     
     _LOGGER.debug("setup entities with coordinator")
 
-    sensorsinfo = await coordinator.get_all_sensors()
+    sensorsinfo = await coordinator.get_sensor_ids()
 
     await coordinator.async_config_entry_first_refresh()
+    
 
 
     _LOGGER.debug(coordinator.data)
     async_add_entities(
-        ZatoboxEntity(coordinator, key, data) for key, data in sensorsinfo.items()
+        ZatoboxEntity(coordinator, key, data) for key, data in coordinator.data.items()
     )
 
 
@@ -98,21 +99,16 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
         self.client:Vanubus = Vanubus(self.ipadress)
 
         #self._device: MyDevice | None = None
-    async def get_all_sensors(self) -> dict:
+    async def get_sensor_ids(self) -> dict:
 
         feedbackdata  = self.client.request_all_info()
 
-        if feedbackdata != None and len(feedbackdata.sensordata) > 0:
+        if feedbackdata == None or len(feedbackdata.sensordata) == 0:
             _LOGGER.error("no corrrect feedback message os sensors")
 
-        listofids = [i.id for i in  feedbackdata.sensordata]
-        
-        _LOGGER.debug("listofids")
-        _LOGGER.debug(listofids)
+        self.listofsensorids = [i.id for i in  feedbackdata.sensordata]
+        return self.listofsensorids
 
-        self.sensorinfo = {f"{self.devicesn}-{id}":  {"name": "sensor", "id": id} for id in listofids}
-
-        return self.sensorinfo
 
     async def _async_setup(self):
         """Set up the coordinator
@@ -133,11 +129,16 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
         This is the place to pre-process the data to lookup tables
         so entities can quickly look up their data.
         """
-        ids = [value['id'] for value in self.sensorinfo.values()]
 
-        sensordata  = self.client.getdata(ids)
+        sensorsdata  = self.client.getdata(self.listofsensorids)
 
-        self.coordinator_data = {f"{self.devicesn}-{sensor.id}":  {"power": sensor.power ,"name": "sensor", "id": sensor.id} for sensor in sensordata}
+        self.coordinator_data = {}
+        for sensor in sensorsdata:
+            for attribute in sensor.attributes:
+                if (not(attribute.startswith("reserve"))):
+                    value = getattr(sensor, attribute)
+                    self.coordinator_data[f"{self.devicesn}-{sensor.id}-{attribute}"] =  {"value": value , "name": attribute, "devicesn":self.devicesn, "id": sensor.id}
+
 
         _LOGGER.debug(self.coordinator_data)
         # coordinator_data = [
@@ -176,10 +177,9 @@ class ZatoboxEntity(CoordinatorEntity, SensorEntity):
         self._attr_device_class = f"{DOMAIN}__{key}"
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, "dsfsdfdsf")},
-            name="test_device",
+            identifiers={(DOMAIN, data["id"])},
+            name=f"Connected device {data["id"]}",
             manufacturer="Zatobox",  # Optional: Add manufacturer information
-            model="One",  # Optional: Add model information
         )
     #     self._attr_device_info = build_device_info(device_name, data)
 
@@ -206,7 +206,7 @@ class ZatoboxEntity(CoordinatorEntity, SensorEntity):
         
         _LOGGER.debug(f"update entity {self.key}")
 
-        self._attr_native_value = self.coordinator.data[self.key]["power"]
+        self._attr_native_value = self.coordinator.data[self.key]["value"]
         self.async_write_ha_state()
 
     def update(self) -> None:
