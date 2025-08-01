@@ -31,7 +31,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 
-from homeassistant.const import UnitOfPower, UnitOfEnergy,  UnitOfVolume, UnitOfElectricCurrent, UnitOfElectricPotential
+from homeassistant.const import UnitOfPower, UnitOfEnergy,  UnitOfVolume
 
 try:
     from homeassistant.const import UnitOfFrequency, UnitOfElectricCurrent, UnitOfElectricPotential
