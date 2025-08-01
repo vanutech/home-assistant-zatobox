@@ -30,7 +30,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import UnitOfPower
+from homeassistant.const import UnitOfPower, UnitOfEnergy, UnitOfFrequency, UnitOfVolume, UnitOfElectricCurrent, UnitOfElectricPotential
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
@@ -44,8 +44,6 @@ from python_zatobox.vanubus import Vanubus
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
-#version of home assistant
-# Python version 3.10.7 (main, Nov 24 2022, 10:22:41) [GCC 11.2.1 20220219]
 
 
 async def async_setup_entry(
@@ -134,18 +132,39 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
 
         self.coordinator_data = {}
         for sensor in sensorsdata:
-            for attribute in sensor.attributes:
+            for i in range(len(sensor.attributes)):
+                attribute = sensor.attributes[i]
+                unitname = sensor.units[i]
+                match unitname:
+                    case 'kWh':
+                        unitforhomeassistant = UnitOfEnergy.KILO_WATT_HOUR
+                    case 'm3':
+                        unitforhomeassistant = UnitOfVolume.CUBIC_METERS
+                    case 'Hz':
+                        unitforhomeassistant = UnitOfFrequency.HERTZ
+                    case 'A':
+                        unitforhomeassistant = UnitOfElectricCurrent.AMPERE
+                    case 'V':
+                        unitforhomeassistant = UnitOfElectricPotential.VOLT
+                    case _:
+                        unitforhomeassistant = UnitOfPower.WATT
+
+                    
                 if (not(attribute.startswith("reserve"))):
                     value = getattr(sensor, attribute)
-                    self.coordinator_data[f"{self.devicesn}-{sensor.id}-{attribute}"] =  {"value": value , "name": attribute, "devicesn":self.devicesn, "id": sensor.id}
+                    self.coordinator_data[f"{self.devicesn}-{sensor.id}-{attribute}"] =  {
+                        "value": value , 
+                        "name": attribute, 
+                        "devicesn":self.devicesn, 
+                        "id": sensor.id,
+                        "unit" : unitforhomeassistant,
+                        }
+                    
+
 
 
         _LOGGER.debug(self.coordinator_data)
-        # coordinator_data = [
-        #     {"name": "Zatobox 1", "power": "10", "attribute1": "value1"},
-        #     {"name": "Zatobox 2", "power": "20", "attribute1": "value2"},
-        #     {"name": "Zatobox 3", "power": "30", "attribute1": "value3"},
-        # ]
+
         return self.coordinator_data; #await self.my_api.fetch_data(listening_idx)
 
 
@@ -166,15 +185,58 @@ class ZatoboxEntity(CoordinatorEntity, SensorEntity):
         
         _LOGGER.debug("data sensor")
         _LOGGER.debug(data)
-        self._attr_native_unit_of_measurement = UnitOfPower.WATT
-        self._attr_device_class = SensorDeviceClass.POWER
-        self._attr_state_class = SensorStateClass.MEASUREMENT
+
 
         self._attr_has_entity_name = True
         self.entity_key = key
         self._attr_unique_id = f"zatobox_entity_{key}"
         self._attr_name = key.rsplit('-', 1)[-1]
         self._attr_device_class = f"{DOMAIN}__{key}"
+         
+
+        if "unit" in data:
+
+            self._attr_native_unit_of_measurement = data["unit"]
+
+            if self._attr_name.startswith('power'):
+                self._attr_icon = "mdi:lightning-bolt"  
+                
+                self._attr_device_class = SensorDeviceClass.POWER
+            elif self._attr_name.startswith('energy'):
+                if (self._attr_native_unit_of_measurement == UnitOfEnergy.KILO_WATT_HOUR):
+                    self._attr_icon = "mdi:meter-electric"  
+                else:
+                    self._attr_icon = "mdi:meter-gas"  
+                self._attr_device_class = SensorDeviceClass.ENERGY
+            elif self._attr_name.startswith('soc'):
+                self._attr_icon = "mdi:battery-high"  
+                self._attr_device_class = SensorDeviceClass.BATTERY
+
+            elif self._attr_name.startswith('voltage'):
+                self._attr_device_class = SensorDeviceClass.VOLTAGE
+            elif self._attr_name.startswith('current'):
+                self._attr_icon = "mdi:sine-wave" 
+                self._attr_device_class = SensorDeviceClass.CURRENT
+            elif self._attr_name.startswith('pf'):
+                self._attr_icon = "mdi:sine-wave" 
+                self._attr_device_class = SensorDeviceClass.POWER_FACTOR
+            elif self._attr_name.startswith('frequency'):
+                self._attr_icon = "mdi:sine-wave" 
+                self._attr_device_class = SensorDeviceClass.FREQUENCY
+            else:
+                _LOGGER.error("unkown device class")
+            
+
+            if (self._attr_device_class == SensorDeviceClass.ENERGY):
+                self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+            else:
+                self._attr_state_class = SensorStateClass.MEASUREMENT
+
+            
+        else:
+
+            
+            _LOGGER.error("no unit")
 
         deviceidentifier = key.rsplit('-', 1)[0]
 
@@ -183,24 +245,7 @@ class ZatoboxEntity(CoordinatorEntity, SensorEntity):
             name=deviceidentifier,
             manufacturer="Zatobox",  # Optional: Add manufacturer information
         )
-    #     self._attr_device_info = build_device_info(device_name, data)
 
-    # def build_device_info(unique_name: str, data: EntryData) -> DeviceInfo:
-    #     friendly_name = (
-    #         data.appliance_info.name if data.appliance_info is not None else unique_name
-    #     )
-    #     manufacturer = (
-    #         brand_name_by_code[data.appliance_info.brand]
-    #         if data.appliance_info is not None
-    #         else None
-    #     )
-    #     model = data.appliance_info.model if data.appliance_info is not None else None
-    #     return DeviceInfo(  # type: ignore[typeddict-item]
-    #         identifiers={(DOMAIN, unique_name)},
-    #         name=friendly_name,
-    #         manufacturer=manufacturer,
-    #         model=model,
-    #     )
 
     @callback
     def _handle_coordinator_update(self) -> None:
