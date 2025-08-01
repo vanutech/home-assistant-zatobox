@@ -156,7 +156,7 @@ class ZatoboxEntity(CoordinatorEntity, SensorEntity):
 
 
 
-    def __init__(self, coordinator, key, data):
+    def __init__(self, coordinator, key:async_setup_entry, data):
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(coordinator, context=key)
 
@@ -173,12 +173,14 @@ class ZatoboxEntity(CoordinatorEntity, SensorEntity):
         self._attr_has_entity_name = True
         self.entity_key = key
         self._attr_unique_id = f"zatobox_entity_{key}"
-        self._attr_name = f"zatobox_entity_{key}"
+        self._attr_name = key.rsplit('-', 1)[-1]
         self._attr_device_class = f"{DOMAIN}__{key}"
 
+        deviceidentifier = key.rsplit('-', 1)[0]
+
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, data["id"])},
-            name=f"Connected device {data["id"]}",
+            identifiers={(DOMAIN, deviceidentifier)},
+            name=deviceidentifier,
             manufacturer="Zatobox",  # Optional: Add manufacturer information
         )
     #     self._attr_device_info = build_device_info(device_name, data)
