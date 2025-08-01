@@ -30,7 +30,17 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import UnitOfPower, UnitOfEnergy, UnitOfFrequency, UnitOfVolume, UnitOfElectricCurrent, UnitOfElectricPotential
+
+from homeassistant.const import UnitOfPower, UnitOfEnergy,  UnitOfVolume, UnitOfElectricCurrent, UnitOfElectricPotential
+
+try:
+    from homeassistant.const import UnitOfFrequency, UnitOfElectricCurrent, UnitOfElectricPotential
+    oldvalues = False #flag to know of old or new unit
+except Exception as e:
+    from homeassistant.const import FREQUENCY_HERTZ, ELECTRIC_CURRENT_AMPERE, ELECTRIC_POTENTIAL_VOLT
+    oldvalues = True
+
+
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
@@ -135,20 +145,34 @@ class ZatoboxCoordinator(DataUpdateCoordinator):
             for i in range(len(sensor.attributes)):
                 attribute = sensor.attributes[i]
                 unitname = sensor.units[i]
-                match unitname:
-                    case 'kWh':
-                        unitforhomeassistant = UnitOfEnergy.KILO_WATT_HOUR
-                    case 'm3':
-                        unitforhomeassistant = UnitOfVolume.CUBIC_METERS
-                    case 'Hz':
-                        unitforhomeassistant = UnitOfFrequency.HERTZ
-                    case 'A':
-                        unitforhomeassistant = UnitOfElectricCurrent.AMPERE
-                    case 'V':
-                        unitforhomeassistant = UnitOfElectricPotential.VOLT
-                    case _:
-                        unitforhomeassistant = UnitOfPower.WATT
-
+                if (oldvalues):
+                    match unitname:
+                        case 'kWh':
+                            unitforhomeassistant = UnitOfEnergy.KILO_WATT_HOUR
+                        case 'm3':
+                            unitforhomeassistant = UnitOfVolume.CUBIC_METERS
+                        case 'Hz':
+                            unitforhomeassistant = FREQUENCY_HERTZ
+                        case 'A':
+                            unitforhomeassistant = ELECTRIC_CURRENT_AMPERE
+                        case 'V':
+                            unitforhomeassistant = ELECTRIC_POTENTIAL_VOLT
+                        case _:
+                            unitforhomeassistant = UnitOfPower.WATT
+                else:
+                    match unitname:
+                        case 'kWh':
+                            unitforhomeassistant = UnitOfEnergy.KILO_WATT_HOUR
+                        case 'm3':
+                            unitforhomeassistant = UnitOfVolume.CUBIC_METERS
+                        case 'Hz':
+                            unitforhomeassistant = UnitOfFrequency.HERTZ
+                        case 'A':
+                            unitforhomeassistant = UnitOfElectricCurrent.AMPERE
+                        case 'V':
+                            unitforhomeassistant = UnitOfElectricPotential.VOLT
+                        case _:
+                            unitforhomeassistant = UnitOfPower.WATT
                     
                 if (not(attribute.startswith("reserve"))):
                     value = getattr(sensor, attribute)
